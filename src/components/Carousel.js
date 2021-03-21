@@ -1,23 +1,105 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { FaArrowAltCircleLeft, FaArrowAltCircleRight } from "react-icons/fa";
 
 function Carousel({ data }) {
+	const [dimensions, setDimensions] = useState({
+		width: window.innerWidth,
+		height: window.innerHeight,
+	});
+
+	useEffect(() => {
+		const handleResize = () => {
+			setDimensions({
+				width: window.innerWidth,
+				height: window.innerHeight,
+			});
+			window.addEventListener("resize", handleResize);
+		};
+	});
 	const slideRef = useRef(null);
 	const [currentImage, setCurrentImage] = useState(0);
-	const [direction, setDirection] = useState(null);
 	const length = data.length;
 
-	console.log(slideRef);
+	const [mouseDown, setMouseDown] = useState(false);
+	const [startX, setStartX] = useState(null);
+
+	const handleInteractionStart = (e) => {
+		setMouseDown(true);
+		if (e.type === "mousedown")
+			setStartX(e.pageX - slideRef.current.offsetLeft);
+		else if (e.type === "touchstart")
+			setStartX(
+				e.nativeEvent.touches[0].pageX - slideRef.current.offsetLeft
+			);
+	};
+
+	const handleMouseLeave = (e) => {
+		setMouseDown(false);
+	};
+
+	const handleInteractionEnd = (e) => {
+		setMouseDown(false);
+		const event = e.type === "touchend" ? e.changedTouches[0] : e;
+		if (startX === event.pageX - slideRef.current.offsetLeft) return;
+		if (
+			event.pageX - slideRef.current.offsetLeft <
+			slideRef.current.offsetWidth / 4
+		) {
+			slideRef.current.style.transitionDuration = "0.2s";
+			slideRef.current.style.transitionTimingFucntion = "ease-in-out";
+			slideRef.current.style.transform = `translateX(${
+				slideRef.current.offsetWidth * (currentImage + 1)
+			}px)`;
+			setCurrentImage((prev) =>
+				currentImage === data.length - 1 ? 0 : prev + 1
+			);
+		} else if (
+			event.pageX - slideRef.current.offsetLeft >
+			(slideRef.current.offsetWidth * 3) / 4
+		) {
+			slideRef.current.style.transitionDuration = "0.2s";
+			slideRef.current.style.transitionTimingFucntion = "ease-in-out";
+			slideRef.current.style.transform = `translateX(-${
+				slideRef.current.offsetWidth * (currentImage - 1)
+			}px)`;
+			setCurrentImage((prev) =>
+				currentImage === 0 ? data.length - 1 : prev - 1
+			);
+		} else {
+			slideRef.current.style.transitionDuration = "0.2s";
+			slideRef.current.style.transitionTimingFucntion = "ease-in-out";
+			slideRef.current.style.transform = `translateX(-${
+				slideRef.current.offsetWidth * currentImage
+			}px)`;
+		}
+	};
+
+	const handleInteraction = (e) => {
+		if (!mouseDown) return;
+		const event = e.type === "mousemove" ? e : e.nativeEvent.touches[0];
+		slideRef.current.style.transitionDuration = "0.0s";
+		slideRef.current.style.transitionTimingFucntion = "ease-in-out";
+		slideRef.current.style.transform = `translateX(-${
+			slideRef.current.offsetWidth * currentImage -
+			(event.pageX - slideRef.current.offsetLeft - startX)
+		}px)`;
+	};
 
 	const nextImage = () => {
-		setDirection("right");
 		setCurrentImage(currentImage === length - 1 ? 0 : (prev) => prev + 1);
 	};
 
 	const prevImage = () => {
-		setDirection("left");
 		setCurrentImage(currentImage === 0 ? length - 1 : (prev) => prev - 1);
 	};
+
+	useLayoutEffect(() => {
+		slideRef.current.style.transitionDuration = "0.7s";
+		slideRef.current.style.transitionTimingFucntion = "ease-in-out";
+		slideRef.current.style.transform = `translateX(-${
+			slideRef.current.offsetWidth * currentImage
+		}px)`;
+	}, [currentImage, dimensions]);
 
 	if (!Array.isArray(data) || data.length <= 0) {
 		return null;
@@ -34,37 +116,35 @@ function Carousel({ data }) {
 					className="arrow-right"
 					onClick={nextImage}
 				/>
-				{data.map((item, index) => {
-					return (
-						<div
-							ref={index === currentImage ? slideRef : null}
-							key={index}
-							className={
-								index === currentImage
-									? "slide active"
-									: direction === "left"
-									? "slide left"
-									: "slide right"
-							}
-							draggable
-							onDrag={(event) => {
-								console.log(event.clientX);
-								slideRef.current.style.marginLeft = 100;
-							}}
-						>
-							{index === currentImage && (
-								<img
-									src={item.imageURL}
-									alt="image"
-									className="carousel-img"
-								/>
-							)}
-						</div>
-					);
-				})}
+
+				<div className="slider-container">
+					<div
+						ref={slideRef}
+						className="img-container"
+						onMouseDown={handleInteractionStart}
+						onMouseMove={handleInteraction}
+						onMouseLeave={handleMouseLeave}
+						onMouseUp={handleInteractionEnd}
+						onTouchStart={handleInteractionStart}
+						onTouchMove={handleInteraction}
+						onTouchEnd={handleInteractionEnd}
+					>
+						{data.map((item, index) => {
+							return (
+								<div key={index} className="data-container">
+									<img
+										key={index}
+										className="slide"
+										src={item.imageURL}
+									/>
+								</div>
+							);
+						})}
+					</div>
+				</div>
 			</div>
 			<div className="selector-dots">
-				{data.map((item, index) => {
+				{data.map((_, index) => {
 					return (
 						<div
 							key={index}
@@ -72,7 +152,7 @@ function Carousel({ data }) {
 								index === currentImage ? "dot selected" : "dot"
 							}
 							onClick={() => setCurrentImage(index)}
-						></div>
+						/>
 					);
 				})}
 			</div>
