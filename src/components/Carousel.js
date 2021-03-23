@@ -137,7 +137,9 @@ function Carousel() {
 										/>
 									) : (
 										<div className="text-slide">
-											<h1>Odd index component</h1>
+											<h1 className="text">
+												Odd index component
+											</h1>
 										</div>
 									)}
 								</div>
