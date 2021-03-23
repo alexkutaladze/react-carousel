@@ -95,6 +95,7 @@ function Carousel() {
 	};
 
 	useLayoutEffect(() => {
+		console.log(slideRef.current.offsetWidth);
 		slideRef.current.style.transitionDuration = "0.7s";
 		slideRef.current.style.transitionTimingFucntion = "ease-in-out";
 		slideRef.current.style.transform = `translateX(-${
