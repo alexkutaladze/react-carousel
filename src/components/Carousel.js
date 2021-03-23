@@ -1,7 +1,8 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { FaArrowAltCircleLeft, FaArrowAltCircleRight } from "react-icons/fa";
+import { CarouselData } from "../data/CarouselData";
+import Arrow from "./Arrow";
 
-function Carousel({ data }) {
+function Carousel() {
 	const [dimensions, setDimensions] = useState({
 		width: window.innerWidth,
 		height: window.innerHeight,
@@ -18,7 +19,7 @@ function Carousel({ data }) {
 	});
 	const slideRef = useRef(null);
 	const [currentImage, setCurrentImage] = useState(0);
-	const length = data.length;
+	const length = CarouselData.length;
 
 	const [mouseDown, setMouseDown] = useState(false);
 	const [startX, setStartX] = useState(null);
@@ -51,7 +52,7 @@ function Carousel({ data }) {
 				slideRef.current.offsetWidth * (currentImage + 1)
 			}px)`;
 			setCurrentImage((prev) =>
-				currentImage === data.length - 1 ? 0 : prev + 1
+				currentImage === CarouselData.length - 1 ? 0 : prev + 1
 			);
 		} else if (
 			event.pageX - slideRef.current.offsetLeft >
@@ -63,7 +64,7 @@ function Carousel({ data }) {
 				slideRef.current.offsetWidth * (currentImage - 1)
 			}px)`;
 			setCurrentImage((prev) =>
-				currentImage === 0 ? data.length - 1 : prev - 1
+				currentImage === 0 ? CarouselData.length - 1 : prev - 1
 			);
 		} else {
 			slideRef.current.style.transitionDuration = "0.2s";
@@ -101,21 +102,15 @@ function Carousel({ data }) {
 		}px)`;
 	}, [currentImage, dimensions]);
 
-	if (!Array.isArray(data) || data.length <= 0) {
+	if (!Array.isArray(CarouselData) || CarouselData.length <= 0) {
 		return null;
 	}
 
 	return (
 		<>
 			<div className="carousel">
-				<FaArrowAltCircleLeft
-					className="arrow-left"
-					onClick={prevImage}
-				/>
-				<FaArrowAltCircleRight
-					className="arrow-right"
-					onClick={nextImage}
-				/>
+				<Arrow direction="left" onClick={prevImage} />
+				<Arrow direction="right" onClick={nextImage} />
 
 				<div className="slider-container">
 					<div
@@ -129,14 +124,21 @@ function Carousel({ data }) {
 						onTouchMove={handleInteraction}
 						onTouchEnd={handleInteractionEnd}
 					>
-						{data.map((item, index) => {
+						{CarouselData.map((item, index) => {
 							return (
 								<div key={index} className="data-container">
-									<img
-										key={index}
-										className="slide"
-										src={item.imageURL}
-									/>
+									{index % 2 === 0 ? (
+										<img
+											draggable={false}
+											key={index}
+											className="slide"
+											src={item.imageURL}
+										/>
+									) : (
+										<div className="text-slide">
+											<h1>Odd index component</h1>
+										</div>
+									)}
 								</div>
 							);
 						})}
@@ -144,7 +146,7 @@ function Carousel({ data }) {
 				</div>
 			</div>
 			<div className="selector-dots">
-				{data.map((_, index) => {
+				{CarouselData.map((_, index) => {
 					return (
 						<div
 							key={index}
