@@ -84,7 +84,6 @@ body {
 	border: 1px solid rgba(0, 0, 0, 0.2);
 	border-radius: 10px;
 	box-shadow: 3px 4px rgba(0, 0, 0, 0.2);
-	font-size: 2vmin;
 	text-align: center;
 }
 
@@ -120,4 +119,13 @@ body {
 	display: flex;
 	width: inherit;
 	height: inherit;
+}
+
+.text {
+	font-size: 4vmin;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 }
